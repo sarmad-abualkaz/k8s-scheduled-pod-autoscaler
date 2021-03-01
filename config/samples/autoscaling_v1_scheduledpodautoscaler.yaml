@@ -1,0 +1,32 @@
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-sample
+spec:
+  # Add fields here
+  resource:
+    type: Deployment
+    name: sarmad-test
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 10:00PM
+    value: 5
+---
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-sample2
+  namespace: spa-test
+spec:
+  # Add fields here
+  resource:
+    type: Deployment
+    name: sarmad-test2
+  scaleUp:
+    time: 8:15AM
+    value: 12
+  scaleDown:
+    time: 4:30PM
+    value: 5

@@ -1,0 +1,20 @@
+# permissions for end users to view scheduledpodautoscalers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: scheduledpodautoscaler-viewer-role
+rules:
+- apiGroups:
+  - autoscaling.spa.sarmadabualkaz.io
+  resources:
+  - scheduledpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - autoscaling.spa.sarmadabualkaz.io
+  resources:
+  - scheduledpodautoscalers/status
+  verbs:
+  - get
