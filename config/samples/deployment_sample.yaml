@@ -6,7 +6,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sarmad-test
+  name: deploy-test
   labels:
     app: nginx
 spec:
@@ -28,7 +28,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sarmad-test2
+  name: deploy-test2
   namespace: spa-test
   labels:
     app: nginx

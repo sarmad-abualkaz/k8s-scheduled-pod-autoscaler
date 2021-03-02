@@ -6,7 +6,7 @@ spec:
   # Add fields here
   resource:
     type: Deployment
-    name: sarmad-test
+    name: deploy-test
   scaleUp:
     time: 8:15AM
     value: 20
@@ -23,7 +23,7 @@ spec:
   # Add fields here
   resource:
     type: Deployment
-    name: sarmad-test2
+    name: deploy-test2
   scaleUp:
     time: 8:15AM
     value: 12
