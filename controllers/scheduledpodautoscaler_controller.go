@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
+	kautoscalingv1 "k8s.io/api/autoscaling/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -84,7 +85,7 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	}
 
 	// 3. Get the respective resource (Deployment if resourceType = "deployment" or "hpaOperator"; HorizontalPodAutoscaler if resourceType = "hpaOperator"):
-	getResourceSpec := func(resourceName string, resourceType string) (deploymentSpec *appsv1.Deployment, err error) {
+	getResourceSpec := func(resourceName string, resourceType string) (deploymentSpec *appsv1.Deployment, hpaSpec *kautoscalingv1.HorizontalPodAutoscaler, err error) {
 		if (resourceType == "deployment") || (resourceType == "hpaOperator") {
 			deploymentSpec = &appsv1.Deployment{}
 
@@ -97,23 +98,39 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 
 			err := r.Get(ctx, client.ObjectKey{Name: resourceName, Namespace: req.NamespacedName.Namespace}, u)
 			if err != nil {
-				return &appsv1.Deployment{}, err
+				return &appsv1.Deployment{}, &kautoscalingv1.HorizontalPodAutoscaler{}, err
 			}
 
 			runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), &deploymentSpec)
 
-			return deploymentSpec, nil
-			// } else if (resourceType == "hpa") {
-			// 	HPA setup to be implemented later
+			return deploymentSpec, &kautoscalingv1.HorizontalPodAutoscaler{}, nil
+		} else if resourceType == "hpa" {
+			hpaSpec = &kautoscalingv1.HorizontalPodAutoscaler{}
+
+			u := &unstructured.Unstructured{}
+			u.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   "autoscaling",
+				Kind:    "HorizontalPodAutoscaler",
+				Version: "v1",
+			})
+
+			err := r.Get(ctx, client.ObjectKey{Name: resourceName, Namespace: req.NamespacedName.Namespace}, u)
+			if err != nil {
+				return &appsv1.Deployment{}, &kautoscalingv1.HorizontalPodAutoscaler{}, err
+			}
+
+			runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), &hpaSpec)
+
+			return &appsv1.Deployment{}, hpaSpec, err
 		} else {
 			err := fmt.Errorf("unrecognizable resource.type %s ResourceType", resourceType)
-			return &appsv1.Deployment{}, err
+			return &appsv1.Deployment{}, &kautoscalingv1.HorizontalPodAutoscaler{}, err
 		}
 	}
 
 	log.V(1).Info("Checking for resource:", "type", resourceType, "name", passedResourceName)
 
-	resourceSpec, err := getResourceSpec(passedResourceName, resourceType)
+	deploymentSpec, hpaSpec, err := getResourceSpec(passedResourceName, resourceType)
 
 	if err != nil {
 		log.Error(err, "unable to find resource for", "resourceName", passedResourceName, "and resource type", resourceType)
@@ -174,26 +191,59 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	}
 
 	// scaleup funciton - scale only if current setup doesnt match required scale value:
-	scaleResource := func(scaleValue *int32, deploymentSpec *appsv1.Deployment) (required bool, err error) {
-		if *scaleValue == *deploymentSpec.Spec.Replicas {
-			return false, nil
-		} else {
-			u := &unstructured.Unstructured{}
+	scaleResource := func(scaleValue *int32, resourceType string, deploymentSpec *appsv1.Deployment, hpaSpec *kautoscalingv1.HorizontalPodAutoscaler) (required bool, err error) {
+		switch resourceType {
+		case "deployment":
+			if *scaleValue == *deploymentSpec.Spec.Replicas {
+				return false, nil
+			} else {
+				u := &unstructured.Unstructured{}
 
-			deploymentSpec.Spec.Replicas = scaleValue
+				deploymentSpec.Spec.Replicas = scaleValue
 
-			var convErr error
+				var convErr error
 
-			u.Object, convErr = runtime.DefaultUnstructuredConverter.ToUnstructured(&deploymentSpec)
-			if convErr != nil {
-				return false, convErr
+				u.Object, convErr = runtime.DefaultUnstructuredConverter.ToUnstructured(&deploymentSpec)
+				if convErr != nil {
+					return false, convErr
+				}
+
+				updateErr := r.Update(ctx, u)
+				if updateErr != nil {
+					return false, updateErr
+				}
+				return true, nil
 			}
-			updateErr := r.Update(ctx, u)
-			if updateErr != nil {
-				return false, updateErr
+		case "hpa":
+			if *scaleValue == *hpaSpec.Spec.MinReplicas {
+				return false, nil
+			} else {
+				u := &unstructured.Unstructured{}
+
+				hpaSpec.Spec.MinReplicas = scaleValue
+
+				if *scaleValue > hpaSpec.Spec.MaxReplicas {
+					log.V(1).Info("maxReplicas is lower than required scaling and new minReplicas", "maxReplicas", hpaSpec.Spec.MaxReplicas, "new minReplicas", scaleValue)
+					log.V(1).Info("setting maxReplicas to new minReplicas", "maxReplicas", scaleValue)
+					hpaSpec.Spec.MaxReplicas = *scaleValue
+				}
+
+				var convErr error
+
+				u.Object, convErr = runtime.DefaultUnstructuredConverter.ToUnstructured(&hpaSpec)
+				if convErr != nil {
+					return false, convErr
+				}
+
+				updateErr := r.Update(ctx, u)
+				if updateErr != nil {
+					return false, updateErr
+				}
+				return true, nil
 			}
-			return true, nil
 		}
+		scaleErr := fmt.Errorf("Failed to update resource %s - its neither a 'deployment' nor 'hpa'", resourceType)
+		return false, scaleErr
 	}
 
 	switch ScaleUpTime.Before(ScaleDownTime) {
@@ -234,7 +284,7 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	}
 
 	// check if scaleup is required - trigger the scaleResource func:
-	requiredScaling, err := scaleResource(requiredReplicas, resourceSpec)
+	requiredScaling, err := scaleResource(requiredReplicas, resourceType, deploymentSpec, hpaSpec)
 
 	// log outcome:
 	if err != nil {
