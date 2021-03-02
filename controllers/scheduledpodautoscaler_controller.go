@@ -24,8 +24,6 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
-	// corev1 "k8s.io/api/core/v1"
-	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -175,8 +173,9 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		return actionType
 	}
 
+	// scaleup funciton - scale only if current setup doesnt match required scale value:
 	scaleResource := func(scaleValue *int32, deploymentSpec *appsv1.Deployment) (required bool, err error) {
-		if scaleValue == deploymentSpec.Spec.Replicas {
+		if *scaleValue == *deploymentSpec.Spec.Replicas {
 			return false, nil
 		} else {
 			u := &unstructured.Unstructured{}
@@ -204,15 +203,15 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		switch actionType {
 		case "earlier":
 			log.V(1).Info("Based on current time - current replicas must match ScaleUp.Value", "pods", scaleUpValue)
-			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy")
 			requiredReplicas = scaleUpValue
 		case "later":
 			log.V(1).Info("Based on current time - current replicas must match ScaleDown.Value", "pods", scaleDownValue)
-			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy")
 			requiredReplicas = scaleDownValue
 		case "laterYesterday":
 			log.V(1).Info("Based on current time - no actions are required for today. Current replicas must match ScaleDown.Value", "pods from yesterday", scaleDownValue)
-			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy")
 			requiredReplicas = scaleDownValue
 		}
 	// when scaleup is after scaledown
@@ -221,21 +220,23 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		switch actionType {
 		case "earlier":
 			log.V(1).Info("Based on current time - current replicas must match ScaleDown.Value", "pods", scaleDownValue)
-			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleDown is required and taking actions if necessairy")
 			requiredReplicas = scaleDownValue
 		case "later":
 			log.V(1).Info("Based on current time - current replicas must match ScaleUp.Value", "pods", scaleUpValue)
-			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy")
 			requiredReplicas = scaleUpValue
 		case "laterYesterday":
 			log.V(1).Info("Based on current time - no actions are required for today. Current replicas must match scaleUpValue.Value", "pods from yesterday", scaleUpValue)
-			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy:")
+			log.V(1).Info("Checking if scaleUp is required and taking actions if necessairy")
 			requiredReplicas = scaleUpValue
 		}
 	}
 
+	// check if scaleup is required - trigger the scaleResource func:
 	requiredScaling, err := scaleResource(requiredReplicas, resourceSpec)
 
+	// log outcome:
 	if err != nil {
 		log.Error(err, "unable to scale resource", "type", resourceType, "named", passedResourceName)
 	} else if requiredScaling {
@@ -244,7 +245,8 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		log.V(1).Info("Replica count already matched required setup with", "podsCount alreadt at", requiredReplicas)
 	}
 
-	// return ctrl.Result{}, nil
+	// 8. Requeue reconciliation and return to manager:
+
 	// retrieve the rate of requeuing reconciliation loop:
 	requeueRate := os.Getenv("RequeueRate")
 	var requeueRateNS time.Duration
@@ -260,6 +262,7 @@ func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		log.Error(prsDurErr, "unable parse duration for reconcilation requeue rate", "value", requeueRate)
 	}
 
+	// return to manager if no errors occured along the way:
 	return ctrl.Result{RequeueAfter: requeueRateNS}, nil
 }
 
