@@ -30,3 +30,20 @@ spec:
   scaleDown:
     time: 4:30PM
     value: 5
+---
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-hpa-sample
+spec:
+  # Add fields here
+  resource:
+    type: HPA
+    name: hpa-test
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 4:30PM
+    value: 4
+---
