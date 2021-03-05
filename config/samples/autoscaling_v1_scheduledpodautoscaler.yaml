@@ -34,7 +34,7 @@ spec:
 apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
 kind: ScheduledPodAutoscaler
 metadata:
-  name: scheduledpodautoscaler-sample2
+  name: scheduledpodautoscaler-hpa-sample
 spec:
   # Add fields here
   resource:
