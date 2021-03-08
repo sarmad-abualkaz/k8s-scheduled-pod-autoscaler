@@ -2,7 +2,7 @@
 
 This is a basic [Kubernetes Controller](https://kubernetes.io/docs/concepts/architecture/controller/) to scale pods based on a schedule using the Scheduled Pod Autoscaler (or SPA) [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/). 
 
-As of now, this controller is meant to manage both Deployments and Horizontal Pod Autoscaler (HPAs) Resources.
+As of now, this controller is meant to manage both [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) and [Horizontal Pod Autoscaler (HPAs)](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) Resources.
 
 ## How does it work?
 
@@ -51,7 +51,9 @@ spec:
 ```
 Based on the above resource, from `spec.scaleUp`/`spec.scaleDown` values under `time` and `value` the controller will check the current time (local timezone) - if it's 8:15 AM, but before 10:00Pm the minReplicas for `hpa/test-hpa` will have to be 20 pods. If it's past 10:00PM then it will scale down the minReplicas on `hpa/test-hpa` to 5. 
 
-*Note if the maxReplicas on during scaleUp or scaleDown happens to be below the value the spa-controller is expected to update minReplicas to, both maxReplicas and minReplicas will be updated to the required 'new' value.*
+**Note1: if the maxReplicas on during scaleUp or scaleDown happens to be below the value the spa-controller is expected to update minReplicas to, both maxReplicas and minReplicas will be updated to the required 'new' value.*
+
+***Note2: the controller accepts the following under `spec.resource.type`: `deployment`, `Deployment` for deployments; and `HPA`, `hpa`, `HorizontalPodAutoscaler` `horizontalPodAutoscaler` for HPAs*
 
 
 ## How to install on cluster?
