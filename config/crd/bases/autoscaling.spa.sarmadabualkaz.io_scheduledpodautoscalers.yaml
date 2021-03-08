@@ -1,0 +1,109 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.5
+  creationTimestamp: null
+  name: scheduledpodautoscalers.autoscaling.spa.sarmadabualkaz.io
+spec:
+  group: autoscaling.spa.sarmadabualkaz.io
+  names:
+    kind: ScheduledPodAutoscaler
+    listKind: ScheduledPodAutoscalerList
+    plural: scheduledpodautoscalers
+    singular: scheduledpodautoscaler
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: ScheduledPodAutoscaler is the Schema for the scheduledpodautoscalers
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ScheduledPodAutoscalerSpec defines the desired state of ScheduledPodAutoscaler
+          properties:
+            resource:
+              description: 'Resource field for ScheduledPodAutoscaler - the resource
+                to scale: Requires two fields - name and type:'
+              properties:
+                name:
+                  description: name of resource to manage - deployment or HPA name
+                  type: string
+                type:
+                  description: 'type of resource to manage - options are: deployment,
+                    HPA or annotatedDeployment (for HPA-operator managed HPAs):'
+                  type: string
+              required:
+              - name
+              - type
+              type: object
+            scaleDown:
+              description: 'Setup for ScaleDown filed Includes two fields - time and
+                value:'
+              properties:
+                time:
+                  description: 'time of when scaling action to take place:'
+                  type: string
+                value:
+                  description: 'value to scale to:'
+                  format: int32
+                  type: integer
+              required:
+              - time
+              - value
+              type: object
+            scaleUp:
+              description: 'Setup for ScaleUp filed Includes two fields - time and
+                value:'
+              properties:
+                time:
+                  description: 'time of when scaling action to take place:'
+                  type: string
+                value:
+                  description: 'value to scale to:'
+                  format: int32
+                  type: integer
+              required:
+              - time
+              - value
+              type: object
+          required:
+          - resource
+          - scaleDown
+          - scaleUp
+          type: object
+        status:
+          description: ScheduledPodAutoscalerStatus defines the observed state of
+            ScheduledPodAutoscaler
+          properties:
+            lastScheduleTime:
+              description: Information when was the last time a scaling action was
+                successfully scheduled.
+              format: date-time
+              type: string
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
