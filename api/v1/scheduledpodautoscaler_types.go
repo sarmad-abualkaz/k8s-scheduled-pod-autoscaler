@@ -67,6 +67,7 @@ type ScheduledPodAutoscalerStatus struct {
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName=spa
 
 // ScheduledPodAutoscaler is the Schema for the scheduledpodautoscalers API
 type ScheduledPodAutoscaler struct {
