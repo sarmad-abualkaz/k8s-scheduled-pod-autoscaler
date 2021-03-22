@@ -46,11 +46,11 @@ spec:
                   type: string
                 type:
                   description: 'type of resource to manage - options are: deployment,
-                    HPA or annotatedDeployment (for HPA-operator managed HPAs):'
+                    HPA or annotatedDeployment (for HPA-operator managed HPAs), Note
+                    (this should default to deployment) :'
                   type: string
               required:
               - name
-              - type
               type: object
             scaleDown:
               description: 'Setup for ScaleDown filed Includes two fields - time and

@@ -1,3 +1,4 @@
+# hpa setup for spa # 3 in 
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:

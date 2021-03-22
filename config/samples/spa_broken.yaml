@@ -1,0 +1,97 @@
+# intentionally broken SPA's to test webhook
+# broken-spa #1 -  empty resource.type - testing defaulting to deployemnt
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-empty-resource
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 4:30PM
+    value: 4
+---
+# broken-spa #2 -  scaleup lower than scaledown
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-scaleup-below-scaleup
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15AM
+    value: 4
+  scaleDown:
+    time: 4:30PM
+    value: 20
+---
+# broken-spa #3 -  scaledown zero
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-bad-scaledown-value-zero
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 4:30PM
+    value: 0
+---
+# broken-spa #4 -  scaledown negative
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-bad-scaledown-value-negative
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 4:30PM
+    value: -11
+---
+# broken-spa #5 -  scaleup bad time entry
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-bad-scaleup-time
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15Test
+    value: 20
+  scaleDown:
+    time: 4:30PM
+    value: 5
+---
+# broken-spa #6 -  scaledown bad time entry
+apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+kind: ScheduledPodAutoscaler
+metadata:
+  name: scheduledpodautoscaler-bad-scaledown-time
+spec:
+  # Add fields here
+  resource:
+    name: empty-type
+  scaleUp:
+    time: 8:15AM
+    value: 20
+  scaleDown:
+    time: 4:30TEST
+    value: 10
+---
