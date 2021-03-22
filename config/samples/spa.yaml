@@ -1,3 +1,4 @@
+# spa #1 - manage regular deployments
 apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
 kind: ScheduledPodAutoscaler
 metadata:
@@ -14,6 +15,7 @@ spec:
     time: 10:00PM
     value: 5
 ---
+#  spa #2 - manage regular deployments - differnent ns
 apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
 kind: ScheduledPodAutoscaler
 metadata:
@@ -31,6 +33,7 @@ spec:
     time: 4:30PM
     value: 5
 ---
+# spa #3 -  manage regular hpa
 apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
 kind: ScheduledPodAutoscaler
 metadata:
@@ -47,3 +50,20 @@ spec:
     time: 4:30PM
     value: 4
 ---
+# # spa #4 -  manage regular hpaOperator/annotated deployments
+# apiVersion: autoscaling.spa.sarmadabualkaz.io/v1
+# kind: ScheduledPodAutoscaler
+# metadata:
+#   name: scheduledpodautoscaler-hpa-sample
+# spec:
+#   # Add fields here
+#   resource:
+#     type: annotatedDeployment
+#     name: hpaOperator-test
+#   scaleUp:
+#     time: 8:15AM
+#     value: 14
+#   scaleDown:
+#     time: 10:30PM
+#     value: 7
+# ---

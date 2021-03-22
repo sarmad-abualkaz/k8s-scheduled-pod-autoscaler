@@ -25,6 +25,8 @@ import (
 
 // ScheduledPodAutoscalerSpec defines the desired state of ScheduledPodAutoscaler
 type ScheduledPodAutoscalerSpec struct {
+	// +kubebuilder:validation:MinLength=0
+
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -45,8 +47,11 @@ type Resource struct {
 	// name of resource to manage - deployment or HPA name
 	Name string `json:"name"`
 
-	// type of resource to manage - options are: deployment, HPA or annotatedDeployment (for HPA-operator managed HPAs):
-	Type string `json:"type"`
+	// type of resource to manage - options are: deployment,
+	// HPA or annotatedDeployment (for HPA-operator managed HPAs),
+	// Note (this should default to deployment) :
+	// +optional
+	Type string `json:"type,omitempty"`
 }
 
 type ScaleSpec struct {
@@ -63,10 +68,12 @@ type ScheduledPodAutoscalerStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Information when was the last time a scaling action was successfully scheduled.
+	// +optional
 	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName=spa
 
 // ScheduledPodAutoscaler is the Schema for the scheduledpodautoscalers API
 type ScheduledPodAutoscaler struct {

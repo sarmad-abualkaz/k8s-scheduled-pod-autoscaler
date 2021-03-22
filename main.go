@@ -51,6 +51,7 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
+		Port:               9443,
 		MetricsBindAddress: metricsAddr,
 	})
 	if err != nil {
@@ -69,15 +70,11 @@ func main() {
 
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
 		if err = (&autoscalingv1.ScheduledPodAutoscaler{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "CronJob")
+			setupLog.Error(err, "unable to create webhook", "webhook", "ScheduledPodAutoscaler")
 			os.Exit(1)
 		}
 	}
 
-	// if err = (&autoscalingv1.ScheduledPodAutoscaler{}).SetupWebhookWithManager(mgr); err != nil {
-	// 	setupLog.Error(err, "unable to create webhook", "webhook", "ScheduledPodAutoscaler")
-	// 	os.Exit(1)
-	// }
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

@@ -44,15 +44,14 @@ type ScheduledPodAutoscalerReconciler struct {
 
 // +kubebuilder:rbac:groups=autoscaling.spa.sarmadabualkaz.io,resources=scheduledpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=autoscaling.spa.sarmadabualkaz.io,resources=scheduledpodautoscalers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=app,resources=deployments,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;update;patch
 
 var (
 	scheduledTimeAnnotation = "spa.sarmadabualkaz.io/scheduled-at"
 )
 
-func (r *ScheduledPodAutoscalerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ScheduledPodAutoscalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("scheduledpodautoscaler", req.NamespacedName)
 
 	// 1. Load the named SPA (ScheduledPodAutoscaler):
