@@ -59,7 +59,7 @@ Based on the above resource, from `spec.scaleUp`/`spec.scaleDown` values under `
 ## How to install on cluster?
 
 ### prerequisite:
-Installing the SPA-controller on cluster with its validating and defautling webhooks require cert-manager to be installed. Please follow [these steps to install cert-manager](the cert manager documentation) prior.
+Installing the SPA-controller on cluster with its validating and defautling webhooks require [cert-manager](https://github.com/jetstack/cert-manager) to be installed. Please follow [these steps to install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html) prior.
 
 ### Direcrtly from project:
 
